@@ -13,8 +13,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
-import { createTransaction, deleteTransaction } from "@/lib/services/transaction-service";
+import {
+  createTransaction,
+  deleteTransaction,
+  updateTransaction,
+} from "@/lib/services/transaction-service";
 import { defaultTransactionFilters } from "@/lib/utils/filters";
+import type { Transaction } from "@/types/domain";
 
 export default function TransactionsPage() {
   const params = useParams<{ bookId: string }>();
@@ -23,6 +28,7 @@ export default function TransactionsPage() {
   const { book } = useBook(params.bookId);
   const { categories } = useCategories(params.bookId);
   const [filters, setFilters] = useState(defaultTransactionFilters);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { filteredTransactions } = useTransactions(params.bookId, filters);
 
   if (!book || !user) {
@@ -42,6 +48,24 @@ export default function TransactionsPage() {
         submitLabel="Voeg transactie toe"
         onSubmit={(values) => createTransaction(book.id, user.uid, values)}
       />
+      {editingTransaction ? (
+        <TransactionForm
+          categories={categories}
+          initialValue={{
+            title: editingTransaction.title,
+            amount: editingTransaction.amount,
+            type: editingTransaction.type,
+            date: editingTransaction.date,
+            categoryId: editingTransaction.categoryId ?? "",
+            notes: editingTransaction.notes ?? "",
+          }}
+          submitLabel="Werk transactie bij"
+          onSubmit={async (values) => {
+            await updateTransaction(book.id, editingTransaction.id, values);
+            setEditingTransaction(null);
+          }}
+        />
+      ) : null}
       <SearchFilterBar categories={categories} filters={filters} onChange={setFilters} />
       {filteredTransactions.length === 0 ? (
         <EmptyState
@@ -52,6 +76,7 @@ export default function TransactionsPage() {
         <TransactionTable
           categories={categories}
           transactions={filteredTransactions}
+          onEdit={setEditingTransaction}
           onDelete={(transactionId) => deleteTransaction(book.id, transactionId)}
         />
       )}

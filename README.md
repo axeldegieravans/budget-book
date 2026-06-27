@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Budget Book
 
-## Getting Started
+ADWEB eindopdracht: een realtime huishoudboekje gebouwd met Next.js 16, React 19, Firebase Auth, Firestore, Recharts en DnD Kit.
 
-First, run the development server:
+## Run
+
+Installeer dependencies indien nodig:
+
+```bash
+npm install
+```
+
+Start daarna de development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open de app bij voorkeur via [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Belangrijkste features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Registreren en inloggen via Firebase Authentication
+- Meerdere huishoudboekjes aanmaken, bewerken, archiveren en herstellen
+- Boekjes delen met andere gebruikers
+- Transacties toevoegen, bewerken, verwijderen en filteren op maand, type en categorie
+- Categorieen met budget, einddatum en visuele budgetstatus
+- Drag-and-drop om transacties direct aan een categorie te koppelen
+- Realtime inzichten via Firestore listeners en grafieken
 
-## Learn More
+## Firebase configuratie
 
-To learn more about Next.js, take a look at the following resources:
+De app verwacht een `.env.local` met deze variabelen:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Zorg er ook voor dat in Firebase Authentication de provider `Email/Password` aan staat.
 
-## Deploy on Vercel
+## Firestore rules
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Er staat een basisconfiguratie in [firestore.rules](./firestore.rules) waarmee:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- gebruikers alleen hun eigen profiel kunnen lezen/schrijven
+- alleen eigenaren en deelnemers een boekje kunnen lezen
+- alleen de eigenaar een boekje kan aanpassen, archiveren, herstellen of delen
+- deelnemers wel transacties en categorieen binnen toegankelijke boekjes kunnen beheren
+
+Deploy de rules met de Firebase CLI:
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+## Tests
+
+Run unit tests:
+
+```bash
+npm test -- --runInBand
+```
+
+Run coverage:
+
+```bash
+npm run test:coverage -- --runInBand
+```
+
+Run lint:
+
+```bash
+npm run lint
+```
