@@ -4,10 +4,12 @@ import type { Category, Transaction } from "@/types/domain";
 export function TransactionTable({
   categories,
   transactions,
+  onEdit,
   onDelete,
 }: {
   categories: Category[];
   transactions: Transaction[];
+  onEdit?: (transaction: Transaction) => void;
   onDelete: (transactionId: string) => Promise<void>;
 }) {
   const categoryMap = new Map(categories.map((category) => [category.id, category.name]));
@@ -45,13 +47,24 @@ export function TransactionTable({
                 {formatCurrency(transaction.amount)}
               </td>
               <td className="px-5 py-4">
-                <button
-                  type="button"
-                  onClick={() => void onDelete(transaction.id)}
-                  className="rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
-                >
-                  Verwijder
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  {onEdit ? (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(transaction)}
+                      className="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
+                    >
+                      Bewerk
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => void onDelete(transaction.id)}
+                    className="rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                  >
+                    Verwijder
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

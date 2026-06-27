@@ -5,10 +5,12 @@ import type { HouseholdBook } from "@/types/domain";
 
 export function BookCard({
   book,
+  actions,
   onEdit,
   onArchive,
 }: {
   book: HouseholdBook;
+  actions?: React.ReactNode;
   onEdit?: () => void;
   onArchive?: () => void;
 }) {
@@ -40,6 +42,7 @@ export function BookCard({
             Open boekje
           </Link>
           <div className="flex flex-wrap gap-2">
+            {actions}
             {onEdit ? (
               <button
                 type="button"

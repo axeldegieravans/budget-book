@@ -18,10 +18,10 @@ jest.mock("firebase/firestore", () => ({
   where: jest.fn(),
 }));
 
-import { addDoc, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 
 import { assertFirebaseConfigured } from "@/lib/firebase/config";
-import { archiveBook, createBook, restoreBook } from "@/lib/services/book-service";
+import { archiveBook, createBook, restoreBook, shareBook } from "@/lib/services/book-service";
 
 describe("book-service", () => {
   beforeEach(() => {
@@ -46,5 +46,18 @@ describe("book-service", () => {
     await restoreBook("book-1");
 
     expect(updateDoc).toHaveBeenCalledTimes(2);
+  });
+
+  it("deelt een boekje met een bestaand account", async () => {
+    (getDocs as jest.Mock).mockResolvedValue({
+      empty: false,
+      docs: [{ id: "user-2" }],
+    });
+
+    await shareBook("book-1", "student@example.com");
+
+    expect(getDocs).toHaveBeenCalled();
+    expect(updateDoc).toHaveBeenCalled();
+    expect(setDoc).toHaveBeenCalled();
   });
 });

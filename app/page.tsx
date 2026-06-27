@@ -27,7 +27,7 @@ export default function Home() {
             </Link>
             <Link
               href="/login"
-              className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
             >
               Ik heb al een account
             </Link>
