@@ -6,10 +6,22 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useBooks } from "@/hooks/use-books";
 import { restoreBook } from "@/lib/services/book-service";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
 
 export default function ArchivedBooksPage() {
   const { user } = useAuth();
   const { books, loading } = useBooks(user?.uid, true);
+  const toast = useToast();
+
+  async function handleRestore(bookId: string, name: string) {
+    try {
+      await restoreBook(bookId);
+      toast.success(`Boekje "${name}" is hersteld.`);
+    } catch (restoreError) {
+      toast.error(getErrorMessage(restoreError, "Boekje herstellen mislukt."));
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +48,7 @@ export default function ArchivedBooksPage() {
               actions={
                 <button
                   type="button"
-                  onClick={() => void restoreBook(book.id)}
+                  onClick={() => void handleRestore(book.id, book.name)}
                   className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
                 >
                   Herstel

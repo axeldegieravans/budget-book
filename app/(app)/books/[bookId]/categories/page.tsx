@@ -14,6 +14,8 @@ import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
 import { createCategory, deleteCategory, updateCategory } from "@/lib/services/category-service";
 import { assignCategory } from "@/lib/services/transaction-service";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
 import type { Category } from "@/types/domain";
 
 export default function CategoriesPage() {
@@ -22,7 +24,61 @@ export default function CategoriesPage() {
   const { book } = useBook(params.bookId);
   const { categories } = useCategories(params.bookId);
   const { transactions } = useTransactions(params.bookId);
+  const toast = useToast();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  async function handleCreate(values: { name: string; budget: number; color: string; endDate?: string }) {
+    try {
+      await createCategory(params.bookId, values);
+      toast.success(`Categorie "${values.name}" is toegevoegd.`);
+    } catch (createError) {
+      toast.error(getErrorMessage(createError, "Categorie aanmaken mislukt."));
+      throw createError;
+    }
+  }
+
+  async function handleUpdate(values: { name: string; budget: number; color: string; endDate?: string }) {
+    if (!editingCategory) {
+      return;
+    }
+
+    try {
+      await updateCategory(params.bookId, editingCategory.id, values);
+      toast.success(`Categorie "${values.name}" is bijgewerkt.`);
+      setEditingCategory(null);
+    } catch (updateError) {
+      toast.error(getErrorMessage(updateError, "Categorie bijwerken mislukt."));
+      throw updateError;
+    }
+  }
+
+  async function handleDelete(category: Category) {
+    try {
+      await deleteCategory(params.bookId, category.id);
+      toast.success(`Categorie "${category.name}" is verwijderd.`);
+    } catch (deleteError) {
+      toast.error(getErrorMessage(deleteError, "Categorie verwijderen mislukt."));
+    }
+  }
+
+  async function handleAssign(transactionId: string, categoryId: string) {
+    const transaction = transactions.find((item) => item.id === transactionId);
+    const category = categories.find((item) => item.id === categoryId);
+
+    try {
+      await assignCategory(params.bookId, transactionId, categoryId);
+
+      if (transaction && category) {
+        toast.success(`"${transaction.title}" is gekoppeld aan "${category.name}".`);
+        return;
+      }
+
+      toast.success("Transactie is aan de categorie gekoppeld.");
+    } catch (assignError) {
+      toast.error(getErrorMessage(assignError, "Koppelen aan categorie mislukt."));
+      throw assignError;
+    }
+  }
 
   if (!book) {
     return null;
@@ -62,7 +118,7 @@ export default function CategoriesPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => void deleteCategory(book.id, category.id)}
+                      onClick={() => void handleDelete(category)}
                       className="rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100"
                     >
                       Verwijder
@@ -76,7 +132,7 @@ export default function CategoriesPage() {
         <div className="space-y-4">
           <CategoryForm
             submitLabel="Voeg categorie toe"
-            onSubmit={(values) => createCategory(book.id, values)}
+            onSubmit={handleCreate}
           />
           {editingCategory ? (
             <CategoryForm
@@ -87,10 +143,7 @@ export default function CategoriesPage() {
                 endDate: editingCategory.endDate,
               }}
               submitLabel="Werk categorie bij"
-              onSubmit={async (values) => {
-                await updateCategory(book.id, editingCategory.id, values);
-                setEditingCategory(null);
-              }}
+              onSubmit={handleUpdate}
             />
           ) : null}
         </div>
@@ -98,7 +151,7 @@ export default function CategoriesPage() {
       <CategoryDropBoard
         categories={categories}
         uncategorizedTransactions={uncategorizedTransactions}
-        onAssign={(transactionId, categoryId) => assignCategory(book.id, transactionId, categoryId)}
+        onAssign={handleAssign}
       />
     </div>
   );

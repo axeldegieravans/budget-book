@@ -12,11 +12,14 @@ import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/hooks/use-auth";
 import { useBooks } from "@/hooks/use-books";
 import { archiveBook, createBook, updateBook } from "@/lib/services/book-service";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
 import type { HouseholdBook } from "@/types/domain";
 
 export default function BooksPage() {
   const { user } = useAuth();
   const { books, loading, error } = useBooks(user?.uid);
+  const toast = useToast();
   const [editingBook, setEditingBook] = useState<HouseholdBook | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<HouseholdBook | null>(null);
 
@@ -28,7 +31,13 @@ export default function BooksPage() {
       return;
     }
 
-    await createBook(user.uid, values);
+    try {
+      await createBook(user.uid, values);
+      toast.success(`Boekje "${values.name}" is aangemaakt.`);
+    } catch (createError) {
+      toast.error(getErrorMessage(createError, "Boekje aanmaken mislukt."));
+      throw createError;
+    }
   }
 
   async function handleUpdate(values: { name: string; description: string }) {
@@ -36,8 +45,28 @@ export default function BooksPage() {
       return;
     }
 
-    await updateBook(editingBook.id, values);
-    setEditingBook(null);
+    try {
+      await updateBook(editingBook.id, values);
+      toast.success(`Boekje "${values.name}" is bijgewerkt.`);
+      setEditingBook(null);
+    } catch (updateError) {
+      toast.error(getErrorMessage(updateError, "Boekje bijwerken mislukt."));
+      throw updateError;
+    }
+  }
+
+  async function handleArchive() {
+    if (!archiveTarget) {
+      return;
+    }
+
+    try {
+      await archiveBook(archiveTarget.id);
+      toast.success(`Boekje "${archiveTarget.name}" is gearchiveerd.`);
+      setArchiveTarget(null);
+    } catch (archiveError) {
+      toast.error(getErrorMessage(archiveError, "Boekje archiveren mislukt."));
+    }
   }
 
   return (
@@ -107,10 +136,7 @@ export default function BooksPage() {
               title={`Archiveer "${archiveTarget.name}"`}
               description="Het boekje verdwijnt uit dit overzicht en komt in het archief terecht. Je kunt het later altijd herstellen."
               confirmLabel="Bevestig archiveren"
-              onConfirm={() => {
-                void archiveBook(archiveTarget.id);
-                setArchiveTarget(null);
-              }}
+              onConfirm={() => void handleArchive()}
             />
           ) : null}
           {editingBook ? (
