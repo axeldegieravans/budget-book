@@ -19,6 +19,7 @@ import type { Transaction, TransactionFormValues } from "@/types/domain";
 export function subscribeToTransactions(
   bookId: string,
   callback: (transactions: Transaction[]) => void,
+  onError?: (error: Error) => void,
 ) {
   const { db } = assertFirebaseConfigured();
   const transactionsQuery = query(
@@ -27,9 +28,15 @@ export function subscribeToTransactions(
     orderBy("createdAt", "desc"),
   );
 
-  return onSnapshot(transactionsQuery, (snapshot) => {
-    callback(snapshot.docs.map((item) => mapSnapshot<Transaction>(item)));
-  });
+  return onSnapshot(
+    transactionsQuery,
+    (snapshot) => {
+      callback(snapshot.docs.map((item) => mapSnapshot<Transaction>(item)));
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 }
 
 export async function createTransaction(

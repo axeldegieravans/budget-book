@@ -6,32 +6,34 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function bookDoc(bookId) {
-      return get(/databases/$(database)/documents/books/$(bookId));
+    function canAccessBookData(bookData) {
+      return isSignedIn()
+        && (
+          bookData.ownerId == request.auth.uid
+          || request.auth.uid in bookData.memberIds
+        );
     }
 
     function isBookOwner(bookId) {
-      return isSignedIn() && bookDoc(bookId).data.ownerId == request.auth.uid;
+      return isSignedIn()
+        && get(/databases/$(database)/documents/books/$(bookId)).data.ownerId == request.auth.uid;
     }
 
     function isBookParticipant(bookId) {
-      return isSignedIn()
-        && (
-          bookDoc(bookId).data.ownerId == request.auth.uid
-          || request.auth.uid in bookDoc(bookId).data.memberIds
-        );
+      return canAccessBookData(get(/databases/$(database)/documents/books/$(bookId)).data);
     }
 
     match /users/{userId} {
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /books/{bookId} {
       allow create: if isSignedIn()
         && request.resource.data.ownerId == request.auth.uid
         && request.auth.uid in request.resource.data.memberIds;
-      allow read: if isBookParticipant(bookId);
+      allow read: if canAccessBookData(resource.data);
       allow update, delete: if isBookOwner(bookId);
 
       match /members/{memberId} {

@@ -14,7 +14,18 @@ export function getCategoryBudgetStatus(
     .filter((transaction) => transaction.type === "expense" && transaction.categoryId === category.id)
     .reduce((total, transaction) => total + transaction.amount, 0);
   const remaining = category.budget - spent;
-  const usageRatio = category.budget <= 0 ? 0 : spent / category.budget;
+
+  if (category.budget <= 0) {
+    return {
+      spent,
+      remaining,
+      usageRatio: spent > 0 ? 1 : 0,
+      tone: spent > 0 ? "danger" : "healthy",
+      label: spent > 0 ? "Budget overschreden" : "Budget op schema",
+    };
+  }
+
+  const usageRatio = spent / category.budget;
 
   if (usageRatio >= 1) {
     return {

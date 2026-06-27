@@ -62,6 +62,20 @@ describe("insights utilities", () => {
     expect(status.tone).toBe("warning");
   });
 
+  it("markeert een nulbudget met uitgaven als overschreden", () => {
+    const zeroBudgetCategory: Category = {
+      ...categories[0],
+      budget: 0,
+    };
+
+    const status = getCategoryBudgetStatus(zeroBudgetCategory, transactions);
+
+    expect(status.spent).toBe(280);
+    expect(status.remaining).toBe(-280);
+    expect(status.tone).toBe("danger");
+    expect(status.label).toBe("Budget overschreden");
+  });
+
   it("bouwt maandgrafiekdata en totalen", () => {
     const monthly = buildMonthlyInsights(transactions);
     const totals = getBookTotals(transactions);

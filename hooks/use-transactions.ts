@@ -9,15 +9,24 @@ import type { TransactionFilters } from "@/types/domain";
 export function useTransactions(bookId?: string, filters: TransactionFilters = defaultTransactionFilters) {
   const [transactions, setTransactions] = useState<import("@/types/domain").Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!bookId) {
       return;
     }
-    const unsubscribe = subscribeToTransactions(bookId, (nextTransactions) => {
-      setTransactions(nextTransactions);
-      setLoading(false);
-    });
+    const unsubscribe = subscribeToTransactions(
+      bookId,
+      (nextTransactions) => {
+        setTransactions(nextTransactions);
+        setLoading(false);
+        setError(null);
+      },
+      (nextError) => {
+        setLoading(false);
+        setError(nextError.message);
+      },
+    );
 
     return unsubscribe;
   }, [bookId]);
@@ -31,6 +40,6 @@ export function useTransactions(bookId?: string, filters: TransactionFilters = d
     transactions: bookId ? transactions : [],
     filteredTransactions: bookId ? filteredTransactions : [],
     loading: bookId ? loading : false,
-    error: null,
+    error,
   };
 }
