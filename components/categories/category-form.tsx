@@ -15,11 +15,14 @@ export function CategoryForm({
   initialValue = defaultValues,
   submitLabel,
   onSubmit,
+  onCancel,
 }: {
   initialValue?: CategoryFormValues;
   submitLabel: string;
   onSubmit: (values: CategoryFormValues) => Promise<void>;
+  onCancel?: () => void;
 }) {
+  const isEditing = Boolean(onCancel);
   const [values, setValues] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +48,29 @@ export function CategoryForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-[1.75rem] border border-white/60 bg-white/85 p-5 shadow-sm">
+    <form
+      onSubmit={handleSubmit}
+      className={`space-y-4 rounded-[1.75rem] border bg-white/85 p-5 shadow-sm ${
+        isEditing ? "border-sky-200 ring-1 ring-sky-100" : "border-white/60"
+      }`}
+    >
+      <div>
+        <p
+          className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+            isEditing ? "bg-sky-100 text-sky-800" : "bg-emerald-100 text-emerald-800"
+          }`}
+        >
+          {isEditing ? "Bewerkmodus" : "Nieuwe categorie"}
+        </p>
+        <h3 className="mt-2 text-xl font-semibold text-slate-900">
+          {isEditing ? "Categorie bewerken" : "Categorie aanmaken"}
+        </h3>
+        <p className="mt-1 text-sm text-slate-600">
+          {isEditing
+            ? "Je werkt nu een bestaande categorie bij. Pas budget, kleur of einddatum aan en sla daarna op."
+            : "Voeg een nieuwe categorie toe zodat je transacties beter kunt indelen en budgetten kunt bewaken."}
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label htmlFor="category-name" className="text-sm font-medium text-slate-700">
@@ -104,13 +129,24 @@ export function CategoryForm({
         </div>
       </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
-      >
-        {loading ? "Bezig..." : submitLabel}
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-60"
+        >
+          {loading ? "Bezig..." : submitLabel}
+        </button>
+        {onCancel ? (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          >
+            Annuleren
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }

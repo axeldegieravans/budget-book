@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BookCard } from "@/components/books/book-card";
 import { BookForm } from "@/components/books/book-form";
@@ -20,6 +20,7 @@ export default function BooksPage() {
   const { user } = useAuth();
   const { books, loading, error } = useBooks(user?.uid);
   const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingBook, setEditingBook] = useState<HouseholdBook | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<HouseholdBook | null>(null);
 
@@ -68,6 +69,15 @@ export default function BooksPage() {
       toast.error(getErrorMessage(archiveError, "Boekje archiveren mislukt."));
     }
   }
+
+  useEffect(() => {
+    if (!editingBook) {
+      return;
+    }
+
+    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [editingBook]);
 
   return (
     <div className="space-y-6">
@@ -129,24 +139,27 @@ export default function BooksPage() {
           )}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>
-        <div className="space-y-4">
-          <BookForm submitLabel="Maak boekje aan" onSubmit={handleCreate} />
+        <div ref={formSectionRef} className="space-y-4">
+          <BookForm
+            key={editingBook ? `edit-${editingBook.id}` : "create-book"}
+            initialValue={
+              editingBook
+                ? {
+                    name: editingBook.name,
+                    description: editingBook.description,
+                  }
+                : undefined
+            }
+            submitLabel={editingBook ? "Sla wijzigingen op" : "Maak boekje aan"}
+            onSubmit={editingBook ? handleUpdate : handleCreate}
+            onCancel={editingBook ? () => setEditingBook(null) : undefined}
+          />
           {archiveTarget ? (
             <ConfirmDialog
               title={`Archiveer "${archiveTarget.name}"`}
               description="Het boekje verdwijnt uit dit overzicht en komt in het archief terecht. Je kunt het later altijd herstellen."
               confirmLabel="Bevestig archiveren"
               onConfirm={() => void handleArchive()}
-            />
-          ) : null}
-          {editingBook ? (
-            <BookForm
-              initialValue={{
-                name: editingBook.name,
-                description: editingBook.description,
-              }}
-              submitLabel="Sla wijzigingen op"
-              onSubmit={handleUpdate}
             />
           ) : null}
           {!editingBook && !archiveTarget ? (

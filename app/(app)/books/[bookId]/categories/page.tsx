@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BookTabs } from "@/components/books/book-tabs";
 import { CategoryBudgetCard } from "@/components/categories/category-budget-card";
@@ -25,6 +25,7 @@ export default function CategoriesPage() {
   const { categories } = useCategories(params.bookId);
   const { transactions } = useTransactions(params.bookId);
   const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   async function handleCreate(values: { name: string; budget: number; color: string; endDate?: string }) {
@@ -80,6 +81,15 @@ export default function CategoriesPage() {
     }
   }
 
+  useEffect(() => {
+    if (!editingCategory) {
+      return;
+    }
+
+    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [editingCategory]);
+
   if (!book) {
     return null;
   }
@@ -129,23 +139,23 @@ export default function CategoriesPage() {
             ))
           )}
         </div>
-        <div className="space-y-4">
+        <div ref={formSectionRef} className="space-y-4">
           <CategoryForm
-            submitLabel="Voeg categorie toe"
-            onSubmit={handleCreate}
+            key={editingCategory ? `edit-${editingCategory.id}` : "create-category"}
+            initialValue={
+              editingCategory
+                ? {
+                    name: editingCategory.name,
+                    budget: editingCategory.budget,
+                    color: editingCategory.color,
+                    endDate: editingCategory.endDate,
+                  }
+                : undefined
+            }
+            submitLabel={editingCategory ? "Werk categorie bij" : "Voeg categorie toe"}
+            onSubmit={editingCategory ? handleUpdate : handleCreate}
+            onCancel={editingCategory ? () => setEditingCategory(null) : undefined}
           />
-          {editingCategory ? (
-            <CategoryForm
-              initialValue={{
-                name: editingCategory.name,
-                budget: editingCategory.budget,
-                color: editingCategory.color,
-                endDate: editingCategory.endDate,
-              }}
-              submitLabel="Werk categorie bij"
-              onSubmit={handleUpdate}
-            />
-          ) : null}
         </div>
       </section>
       <CategoryDropBoard

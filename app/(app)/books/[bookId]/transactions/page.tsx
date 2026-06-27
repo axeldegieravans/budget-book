@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { BookTabs } from "@/components/books/book-tabs";
 import { SearchFilterBar } from "@/components/transactions/search-filter-bar";
@@ -30,6 +30,7 @@ export default function TransactionsPage() {
   const { book } = useBook(params.bookId);
   const { categories } = useCategories(params.bookId);
   const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [filters, setFilters] = useState(defaultTransactionFilters);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { filteredTransactions } = useTransactions(params.bookId, filters);
@@ -82,6 +83,15 @@ export default function TransactionsPage() {
     }
   }
 
+  useEffect(() => {
+    if (!editingTransaction) {
+      return;
+    }
+
+    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, [editingTransaction]);
+
   if (!book || !user) {
     return null;
   }
@@ -94,26 +104,27 @@ export default function TransactionsPage() {
         description="Alle resources updaten realtime. Filter direct op type, categorie, maand of zoekterm."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
-      <TransactionForm
-        categories={categories}
-        submitLabel="Voeg transactie toe"
-        onSubmit={handleCreate}
-      />
-      {editingTransaction ? (
+      <div ref={formSectionRef}>
         <TransactionForm
+          key={editingTransaction ? `edit-${editingTransaction.id}` : "create-transaction"}
           categories={categories}
-          initialValue={{
-            title: editingTransaction.title,
-            amount: editingTransaction.amount,
-            type: editingTransaction.type,
-            date: editingTransaction.date,
-            categoryId: editingTransaction.categoryId ?? "",
-            notes: editingTransaction.notes ?? "",
-          }}
-          submitLabel="Werk transactie bij"
-          onSubmit={handleUpdate}
+          initialValue={
+            editingTransaction
+              ? {
+                  title: editingTransaction.title,
+                  amount: editingTransaction.amount,
+                  type: editingTransaction.type,
+                  date: editingTransaction.date,
+                  categoryId: editingTransaction.categoryId ?? "",
+                  notes: editingTransaction.notes ?? "",
+                }
+              : undefined
+          }
+          submitLabel={editingTransaction ? "Werk transactie bij" : "Voeg transactie toe"}
+          onSubmit={editingTransaction ? handleUpdate : handleCreate}
+          onCancel={editingTransaction ? () => setEditingTransaction(null) : undefined}
         />
-      ) : null}
+      </div>
       <SearchFilterBar categories={categories} filters={filters} onChange={setFilters} />
       {filteredTransactions.length === 0 ? (
         <EmptyState
