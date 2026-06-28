@@ -6,16 +6,11 @@ export default function Home() {
       <main className="grid w-full max-w-6xl gap-8 rounded-[2.5rem] border border-white/60 bg-white/85 p-8 shadow-[0_30px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:grid-cols-[1.15fr_0.85fr] lg:p-12">
         <section className="space-y-8">
           <div className="space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-              ADWEB 2425 eindopdracht
-            </p>
             <h1 className="max-w-2xl text-5xl font-semibold tracking-tight text-slate-950">
-              Een realtime huishoudboekje met heldere budgetten, categorieen en inzichten.
+              Houd je inkomsten, uitgaven en budgetten overzichtelijk bij.
             </h1>
             <p className="max-w-2xl text-base leading-8 text-slate-600">
-              Gebouwd voor React 19, Firebase en een nette presentatie: meerdere boekjes,
-              realtime Firestore-updates, drag-and-drop categorisering, grafieken en een
-              duidelijke Tailwind UI.
+              Maak boekjes aan, deel ze met anderen en bekijk snel wat er binnenkomt en uitgaat.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -35,9 +30,9 @@ export default function Home() {
         </section>
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           {[
-            ["Realtime", "Firestore listeners houden boekjes, totalen en grafieken live synchroon."],
-            ["Overzichtelijk", "Kleine componenten, losse services en duidelijke route-indeling."],
-            ["Gebruiksvriendelijk", "Heldere forms, budgetsignalen en fijne flows voor dagelijkse invoer."],
+            ["Overzicht", "Zie in een oogopslag je saldo, categorieen en transacties."],
+            ["Samen", "Deel boekjes met anderen en werk samen in hetzelfde overzicht."],
+            ["Inzicht", "Gebruik grafieken en budgetten om sneller patronen te zien."],
           ].map(([title, text]) => (
             <article key={title} className="rounded-[1.75rem] bg-slate-950 p-5 text-white">
               <h2 className="text-lg font-semibold">{title}</h2>

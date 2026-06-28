@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { SubmitEvent } from "react";
 
 import { currentDateInputValue } from "@/lib/utils/format";
 import type { Category, TransactionFormValues } from "@/types/domain";
@@ -32,7 +33,7 @@ export function TransactionForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
@@ -53,9 +54,20 @@ export function TransactionForm({
     <form
       onSubmit={handleSubmit}
       className={`space-y-4 rounded-[1.75rem] border bg-white/90 p-5 shadow-sm ${
-        isEditing ? "border-sky-200 ring-1 ring-sky-100" : "border-white/60"
+        isEditing ? "border-sky-300 bg-sky-50/40 ring-2 ring-sky-100" : "border-white/60"
       }`}
     >
+      {isEditing ? (
+        <div className="rounded-[1.4rem] border border-sky-200 bg-sky-100/80 px-4 py-3 text-sky-950">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-800">
+            Je bewerkt nu een transactie
+          </p>
+          <p className="mt-1 text-sm">
+            Wijzigingen worden opgeslagen voor{" "}
+            <span className="font-semibold">{initialValue.title || "deze transactie"}</span>.
+          </p>
+        </div>
+      ) : null}
       <div>
         <p
           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
@@ -69,8 +81,8 @@ export function TransactionForm({
         </h3>
         <p className="mt-1 text-sm text-slate-600">
           {isEditing
-            ? "Je past nu een bestaande transactie aan. Controleer titel, bedrag en categorie voordat je opslaat."
-            : "Voeg een nieuwe inkomsten- of uitgavetransactie toe zodat je overzicht direct bijgewerkt wordt."}
+            ? "Pas de gegevens van deze transactie aan."
+            : "Vul de gegevens van je nieuwe transactie in."}
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">

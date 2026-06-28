@@ -4,8 +4,8 @@ import { AuthProvider } from "@/providers/auth-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 
 export const metadata: Metadata = {
-  title: "Huishoudboekje ADWEB 2425",
-  description: "Realtime huishoudboekje met Next.js, Firebase, Tailwind en Jest.",
+  title: "Huishoudboekje",
+  description: "Een eenvoudig huishoudboekje voor boekjes, categorieen en transacties.",
 };
 
 export default function RootLayout({

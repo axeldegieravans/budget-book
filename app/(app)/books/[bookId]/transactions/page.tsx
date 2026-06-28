@@ -101,7 +101,7 @@ export default function TransactionsPage() {
       <PageHeader
         eyebrow="Transacties"
         title={`Transacties in ${book.name}`}
-        description="Alle resources updaten realtime. Filter direct op type, categorie, maand of zoekterm."
+        description="Bekijk, filter en beheer je transacties."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
       <div ref={formSectionRef}>
@@ -129,7 +129,7 @@ export default function TransactionsPage() {
       {filteredTransactions.length === 0 ? (
         <EmptyState
           title="Geen transacties gevonden"
-          description="Pas je filters aan of voeg een eerste transactie toe."
+          description="Pas je filters aan of voeg een transactie toe."
         />
       ) : (
         <TransactionTable

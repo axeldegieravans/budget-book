@@ -1,5 +1,6 @@
 "use client";
 
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 
 import type { CategoryFormValues } from "@/types/domain";
@@ -27,7 +28,7 @@ export function CategoryForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
@@ -51,9 +52,20 @@ export function CategoryForm({
     <form
       onSubmit={handleSubmit}
       className={`space-y-4 rounded-[1.75rem] border bg-white/85 p-5 shadow-sm ${
-        isEditing ? "border-sky-200 ring-1 ring-sky-100" : "border-white/60"
+        isEditing ? "border-sky-300 bg-sky-50/40 ring-2 ring-sky-100" : "border-white/60"
       }`}
     >
+      {isEditing ? (
+        <div className="rounded-[1.4rem] border border-sky-200 bg-sky-100/80 px-4 py-3 text-sky-950">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-800">
+            Je bewerkt nu een categorie
+          </p>
+          <p className="mt-1 text-sm">
+            Wijzigingen worden opgeslagen voor{" "}
+            <span className="font-semibold">{initialValue.name || "deze categorie"}</span>.
+          </p>
+        </div>
+      ) : null}
       <div>
         <p
           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
@@ -67,8 +79,8 @@ export function CategoryForm({
         </h3>
         <p className="mt-1 text-sm text-slate-600">
           {isEditing
-            ? "Je werkt nu een bestaande categorie bij. Pas budget, kleur of einddatum aan en sla daarna op."
-            : "Voeg een nieuwe categorie toe zodat je transacties beter kunt indelen en budgetten kunt bewaken."}
+            ? "Pas de gegevens van deze categorie aan."
+            : "Vul de gegevens van je nieuwe categorie in."}
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">

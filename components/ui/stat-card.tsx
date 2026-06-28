@@ -21,7 +21,7 @@ export function StatCard({
   return (
     <article
       className={cn(
-        "rounded-[1.75rem] border border-white/60 bg-gradient-to-br p-5 shadow-[0_12px_40px_rgba(15,23,42,0.08)]",
+        "rounded-[1.75rem] bg-gradient-to-br p-5 shadow-[0_16px_36px_rgba(15,23,42,0.08)]",
         accentStyles[accent],
       )}
     >

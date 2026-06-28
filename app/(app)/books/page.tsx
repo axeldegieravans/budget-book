@@ -84,7 +84,7 @@ export default function BooksPage() {
       <PageHeader
         eyebrow="Boekjes"
         title="Jouw huishoudboekjes"
-        description="Beheer meerdere budgetten naast elkaar, bijvoorbeeld voor thuis, een projectgroep of een vakantiepot."
+        description="Bekijk, maak en beheer je boekjes."
         actions={
           <Link
             href="/books/archived"
@@ -123,7 +123,7 @@ export default function BooksPage() {
           ) : books.length === 0 ? (
             <EmptyState
               title="Nog geen boekjes"
-              description="Maak je eerste huishoudboekje aan om transacties, categorieen en inzichten bij te houden."
+              description="Maak je eerste boekje aan om te beginnen."
             />
           ) : (
             <div className="space-y-4">
@@ -164,9 +164,9 @@ export default function BooksPage() {
           ) : null}
           {!editingBook && !archiveTarget ? (
             <div className="rounded-[1.9rem] border border-dashed border-emerald-200 bg-emerald-50/70 p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Sneller werken met boekjes</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Tip</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Geef elk boekje een duidelijke naam, bijvoorbeeld per huis, project of reis. Dan blijven overzicht, categorieen en transacties later veel makkelijker scanbaar.
+                Geef je boekjes duidelijke namen zodat je ze sneller terugvindt.
               </p>
             </div>
           ) : null}

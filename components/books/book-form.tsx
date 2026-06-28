@@ -1,5 +1,6 @@
 "use client";
 
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 
 import type { BookFormValues } from "@/types/domain";
@@ -25,7 +26,7 @@ export function BookForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
@@ -46,9 +47,20 @@ export function BookForm({
     <form
       onSubmit={handleSubmit}
       className={`space-y-5 rounded-[1.9rem] border bg-white/95 p-6 text-slate-900 shadow-[0_20px_50px_rgba(15,23,42,0.08)] ${
-        isEditing ? "border-sky-200 ring-1 ring-sky-100" : "border-white/70"
+        isEditing ? "border-sky-300 bg-sky-50/40 ring-2 ring-sky-100" : "border-white/70"
       }`}
     >
+      {isEditing ? (
+        <div className="rounded-[1.4rem] border border-sky-200 bg-sky-100/80 px-4 py-3 text-sky-950">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-800">
+            Je bewerkt nu een boekje
+          </p>
+          <p className="mt-1 text-sm">
+            Wijzigingen worden opgeslagen voor{" "}
+            <span className="font-semibold">{initialValue.name || "dit boekje"}</span>.
+          </p>
+        </div>
+      ) : null}
       <div>
         <p
           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
@@ -62,8 +74,8 @@ export function BookForm({
         </h3>
         <p className="mt-1 text-sm text-slate-600">
           {isEditing
-            ? "Je past nu een bestaand boekje aan. Sla je wijzigingen op of annuleer als je toch niets wilt veranderen."
-            : "Maak een nieuw boekje aan met een duidelijke naam en korte context zodat je later snel het juiste overzicht terugvindt."}
+            ? "Pas de naam of omschrijving van dit boekje aan."
+            : "Vul een naam en omschrijving in voor je boekje."}
         </p>
       </div>
       <div>
@@ -90,7 +102,7 @@ export function BookForm({
             setValues((current) => ({ ...current, description: event.target.value }))
           }
           className="mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-emerald-400"
-          placeholder="Waar gebruik je dit huishoudboekje voor?"
+          placeholder="Korte omschrijving"
         />
       </div>
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}

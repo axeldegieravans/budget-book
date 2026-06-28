@@ -7,8 +7,7 @@ export function FirebaseSetupNotice() {
       <h1 className="mt-3 text-3xl font-semibold text-slate-900">Firebase is nog niet gekoppeld</h1>
       <p className="mt-3 text-sm leading-6 text-slate-600">
         Voeg een `.env.local` toe met de `NEXT_PUBLIC_FIREBASE_*` variabelen voor API key,
-        auth domain, project id, storage bucket, messaging sender id en app id. Daarna werkt
-        authenticatie, Firestore en realtime synchronisatie direct met deze codebase.
+        auth domain, project id, storage bucket, messaging sender id en app id.
       </p>
     </div>
   );

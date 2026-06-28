@@ -101,7 +101,7 @@ export default function CategoriesPage() {
       <PageHeader
         eyebrow="Categorieen"
         title={`Categorieen in ${book.name}`}
-        description="Beheer budgetten per categorie en koppel transacties direct via drag-and-drop."
+        description="Beheer je categorieen en koppel transacties."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.95fr]">
@@ -109,7 +109,7 @@ export default function CategoriesPage() {
           {categories.length === 0 ? (
             <EmptyState
               title="Nog geen categorieen"
-              description="Voeg categorieen toe zodat je budgetten per onderwerp kunt bewaken."
+              description="Voeg een categorie toe om te beginnen."
             />
           ) : (
             categories.map((category) => (
@@ -160,6 +160,7 @@ export default function CategoriesPage() {
       </section>
       <CategoryDropBoard
         categories={categories}
+        transactions={transactions}
         uncategorizedTransactions={uncategorizedTransactions}
         onAssign={handleAssign}
       />

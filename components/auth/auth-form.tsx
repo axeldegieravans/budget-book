@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 
 import { login, register } from "@/lib/services/auth-service";
@@ -16,7 +17,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   const isRegister = mode === "register";
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
@@ -42,12 +43,12 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         {isRegister ? "Nieuw account" : "Welkom terug"}
       </p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
-        {isRegister ? "Maak je huishoudboekje aan" : "Log in op je werkruimte"}
+        {isRegister ? "Maak een account aan" : "Inloggen"}
       </h1>
       <p className="mt-2 text-sm leading-6 text-slate-600">
         {isRegister
-          ? "Registreer met e-mail en wachtwoord. Daarna wordt je profiel direct in Firebase opgeslagen."
-          : "Log in om realtime je boekjes, categorieen en transacties te beheren."}
+          ? "Registreer met je e-mailadres en een wachtwoord."
+          : "Log in om je boekjes en transacties te bekijken."}
       </p>
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         {isRegister ? (
@@ -106,7 +107,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           href={isRegister ? "/login" : "/register"}
           className="font-semibold text-emerald-700 hover:text-emerald-800"
         >
-          {isRegister ? "Log in" : "Registreer hier"}
+          {isRegister ? "Inloggen" : "Registreer hier"}
         </Link>
       </p>
     </div>

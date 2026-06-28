@@ -35,8 +35,8 @@ export default function InsightsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Inzichten"
-        title={`Budgetinzichten voor ${book.name}`}
-        description="Gebruik de grafieken om trends, categorie-uitgaven en budgetdruk vroeg te signaleren."
+        title={`Inzichten voor ${book.name}`}
+        description="Bekijk je cijfers en grafieken."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
       <section className="grid gap-4 md:grid-cols-3">

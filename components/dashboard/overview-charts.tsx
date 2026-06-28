@@ -12,7 +12,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 
+import { formatCurrency } from "@/lib/utils/format";
 import type { CategoryInsightPoint, MonthlyInsightPoint } from "@/types/domain";
 
 function ChartCard({
@@ -37,6 +39,20 @@ export function OverviewCharts({
   monthlyData: MonthlyInsightPoint[];
   categoryData: CategoryInsightPoint[];
 }) {
+  const labelMap = {
+    income: "Inkomsten",
+    expenses: "Uitgaven",
+    spent: "Besteed",
+    budget: "Budget",
+  } as const;
+
+  function formatTooltipValue(value: ValueType | undefined, name: NameType | undefined) {
+    return [
+      formatCurrency(Number(value ?? 0)),
+      labelMap[String(name) as keyof typeof labelMap] ?? String(name ?? ""),
+    ] as const;
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-2">
       <ChartCard title="Inkomsten vs uitgaven per maand">
@@ -46,10 +62,24 @@ export function OverviewCharts({
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+                formatter={formatTooltipValue}
+              />
               <Legend />
-              <Line type="monotone" dataKey="income" stroke="#0f766e" strokeWidth={3} />
-              <Line type="monotone" dataKey="expenses" stroke="#dc2626" strokeWidth={3} />
+              <Line
+                type="monotone"
+                dataKey="income"
+                name="Inkomsten"
+                stroke="#0f766e"
+                strokeWidth={3}
+              />
+              <Line
+                type="monotone"
+                dataKey="expenses"
+                name="Uitgaven"
+                stroke="#dc2626"
+                strokeWidth={3}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -61,10 +91,12 @@ export function OverviewCharts({
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip />
+              <Tooltip
+                formatter={formatTooltipValue}
+              />
               <Legend />
-              <Bar dataKey="spent" fill="#10b981" radius={[10, 10, 0, 0]} />
-              <Bar dataKey="budget" fill="#cbd5e1" radius={[10, 10, 0, 0]} />
+              <Bar dataKey="spent" name="Besteed" fill="#10b981" radius={[10, 10, 0, 0]} />
+              <Bar dataKey="budget" name="Budget" fill="#cbd5e1" radius={[10, 10, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

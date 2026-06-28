@@ -1,5 +1,6 @@
 "use client";
 
+import type { SubmitEvent } from "react";
 import { useState } from "react";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { useToast } from "@/providers/toast-provider";
@@ -15,7 +16,7 @@ export function ShareBookForm({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);

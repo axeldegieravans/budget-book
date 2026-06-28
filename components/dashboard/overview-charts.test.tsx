@@ -11,8 +11,8 @@ jest.mock("recharts", () => ({
   Tooltip: () => <div>Tooltip</div>,
   XAxis: () => <div>XAxis</div>,
   YAxis: () => <div>YAxis</div>,
-  Line: ({ dataKey }: { dataKey: string }) => <div>Line {dataKey}</div>,
-  Bar: ({ dataKey }: { dataKey: string }) => <div>Bar {dataKey}</div>,
+  Line: ({ name }: { name: string }) => <div>Lijn {name}</div>,
+  Bar: ({ name }: { name: string }) => <div>Staaf {name}</div>,
 }));
 
 describe("OverviewCharts", () => {
@@ -26,9 +26,9 @@ describe("OverviewCharts", () => {
 
     expect(screen.getByText("Inkomsten vs uitgaven per maand")).toBeInTheDocument();
     expect(screen.getByText("Uitgaven per categorie")).toBeInTheDocument();
-    expect(screen.getByText("Line income")).toBeInTheDocument();
-    expect(screen.getByText("Line expenses")).toBeInTheDocument();
-    expect(screen.getByText("Bar spent")).toBeInTheDocument();
-    expect(screen.getByText("Bar budget")).toBeInTheDocument();
+    expect(screen.getByText("Lijn Inkomsten")).toBeInTheDocument();
+    expect(screen.getByText("Lijn Uitgaven")).toBeInTheDocument();
+    expect(screen.getByText("Staaf Besteed")).toBeInTheDocument();
+    expect(screen.getByText("Staaf Budget")).toBeInTheDocument();
   });
 });

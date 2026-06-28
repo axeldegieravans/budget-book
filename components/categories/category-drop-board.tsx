@@ -17,6 +17,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useState } from "react";
 
+import { formatCurrency } from "@/lib/utils/format";
+import { getCategoryBudgetStatus } from "@/lib/utils/insights";
 import type { Category, Transaction } from "@/types/domain";
 
 function TransactionCard({
@@ -32,12 +34,19 @@ function TransactionCard({
     <div
       className={`w-full rounded-2xl border border-white/60 bg-white p-4 text-left shadow-sm transition ${
         isDragging ? "scale-[1.02] shadow-lg" : "hover:shadow-md"
-      } ${isGhost ? "opacity-45" : ""}`}
+      } ${isGhost ? "opacity-0" : ""}`}
     >
-      <p className="font-medium text-slate-900">{transaction.title}</p>
-      <p className="mt-1 text-sm text-slate-500">
-        Sleep naar een categorie {isDragging ? "..." : ""}
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-medium text-slate-900">{transaction.title}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Sleep naar een categorie {isDragging ? "..." : ""}
+          </p>
+        </div>
+        <span className="text-sm font-semibold text-slate-700">
+          {formatCurrency(transaction.amount)}
+        </span>
+      </div>
     </div>
   );
 }
@@ -62,9 +71,11 @@ function DraggableTransaction({ transaction }: { transaction: Transaction }) {
 
 function DroppableCategory({
   category,
+  remaining,
   onAssignLatest,
 }: {
   category: Category;
+  remaining: number;
   onAssignLatest: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: category.id });
@@ -77,9 +88,14 @@ function DroppableCategory({
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
-          <span className="font-semibold text-slate-900">{category.name}</span>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: category.color }} />
+            <span className="font-semibold text-slate-900">{category.name}</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            Resterend: {formatCurrency(remaining)}
+          </p>
         </div>
         <button
           type="button"
@@ -95,10 +111,12 @@ function DroppableCategory({
 
 export function CategoryDropBoard({
   categories,
+  transactions,
   uncategorizedTransactions,
   onAssign,
 }: {
   categories: Category[];
+  transactions: Transaction[];
   uncategorizedTransactions: Transaction[];
   onAssign: (transactionId: string, categoryId: string) => Promise<void>;
 }) {
@@ -190,6 +208,7 @@ export function CategoryDropBoard({
               <DroppableCategory
                 key={category.id}
                 category={category}
+                remaining={getCategoryBudgetStatus(category, transactions).remaining}
                 onAssignLatest={() => {
                   const latest = visibleTransactions[0];
                   if (latest) {
