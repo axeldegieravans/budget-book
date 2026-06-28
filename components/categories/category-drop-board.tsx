@@ -21,6 +21,10 @@ import { formatCurrency } from "@/lib/utils/format";
 import { getCategoryBudgetStatus } from "@/lib/utils/insights";
 import type { Category, Transaction } from "@/types/domain";
 
+const POINTER_DRAG_DISTANCE = 8;
+const TOUCH_DRAG_DELAY_MS = 150;
+const TOUCH_DRAG_TOLERANCE = 6;
+
 function TransactionCard({
   transaction,
   isDragging = false,
@@ -130,6 +134,13 @@ export function CategoryDropBoard({
       ),
     [pendingAssignments, uncategorizedTransactions],
   );
+  const categoryBudgetStatuses = useMemo(
+    () =>
+      new Map(
+        categories.map((category) => [category.id, getCategoryBudgetStatus(category, transactions)]),
+      ),
+    [categories, transactions],
+  );
 
   const activeTransaction =
     visibleTransactions.find((transaction) => transaction.id === activeTransactionId) ??
@@ -138,13 +149,13 @@ export function CategoryDropBoard({
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: { distance: POINTER_DRAG_DISTANCE },
     }),
     useSensor(MouseSensor, {
-      activationConstraint: { distance: 8 },
+      activationConstraint: { distance: POINTER_DRAG_DISTANCE },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 150, tolerance: 6 },
+      activationConstraint: { delay: TOUCH_DRAG_DELAY_MS, tolerance: TOUCH_DRAG_TOLERANCE },
     }),
   );
 
@@ -208,7 +219,9 @@ export function CategoryDropBoard({
               <DroppableCategory
                 key={category.id}
                 category={category}
-                remaining={getCategoryBudgetStatus(category, transactions).remaining}
+                remaining={
+                  categoryBudgetStatuses.get(category.id)?.remaining ?? category.budget
+                }
                 onAssignLatest={() => {
                   const latest = visibleTransactions[0];
                   if (latest) {

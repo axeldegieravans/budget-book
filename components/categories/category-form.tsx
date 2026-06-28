@@ -13,17 +13,19 @@ const defaultValues: CategoryFormValues = {
 };
 
 export function CategoryForm({
+  mode = "create",
   initialValue = defaultValues,
   submitLabel,
   onSubmit,
   onCancel,
 }: {
+  mode?: "create" | "edit";
   initialValue?: CategoryFormValues;
   submitLabel: string;
   onSubmit: (values: CategoryFormValues) => Promise<void>;
   onCancel?: () => void;
 }) {
-  const isEditing = Boolean(onCancel);
+  const isEditing = mode === "edit";
   const [values, setValues] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export function CategoryForm({
         ...values,
         endDate: values.endDate || undefined,
       });
-      if (submitLabel.toLowerCase().includes("toe")) {
+      if (mode === "create") {
         setValues(defaultValues);
       }
     } catch (submitError) {

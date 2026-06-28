@@ -17,18 +17,20 @@ const defaultValues: TransactionFormValues = {
 
 export function TransactionForm({
   categories,
+  mode = "create",
   initialValue = defaultValues,
   submitLabel,
   onSubmit,
   onCancel,
 }: {
   categories: Category[];
+  mode?: "create" | "edit";
   initialValue?: TransactionFormValues;
   submitLabel: string;
   onSubmit: (values: TransactionFormValues) => Promise<void>;
   onCancel?: () => void;
 }) {
-  const isEditing = Boolean(onCancel);
+  const isEditing = mode === "edit";
   const [values, setValues] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +42,7 @@ export function TransactionForm({
 
     try {
       await onSubmit(values);
-      if (submitLabel.toLowerCase().includes("toe")) {
+      if (mode === "create") {
         setValues(defaultValues);
       }
     } catch (submitError) {

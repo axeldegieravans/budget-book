@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { BookTabs } from "@/components/books/book-tabs";
 import { CategoryBudgetCard } from "@/components/categories/category-budget-card";
@@ -11,12 +11,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { useTransactions } from "@/hooks/use-transactions";
 import { createCategory, deleteCategory, updateCategory } from "@/lib/services/category-service";
 import { assignCategory } from "@/lib/services/transaction-service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { useToast } from "@/providers/toast-provider";
-import type { Category } from "@/types/domain";
+import type { Category, CategoryFormValues } from "@/types/domain";
 
 export default function CategoriesPage() {
   const params = useParams<{ bookId: string }>();
@@ -27,8 +28,9 @@ export default function CategoriesPage() {
   const toast = useToast();
   const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  useScrollToElement(formSectionRef, Boolean(editingCategory));
 
-  async function handleCreate(values: { name: string; budget: number; color: string; endDate?: string }) {
+  async function handleCreate(values: CategoryFormValues) {
     try {
       await createCategory(params.bookId, values);
       toast.success(`Categorie "${values.name}" is toegevoegd.`);
@@ -38,7 +40,7 @@ export default function CategoriesPage() {
     }
   }
 
-  async function handleUpdate(values: { name: string; budget: number; color: string; endDate?: string }) {
+  async function handleUpdate(values: CategoryFormValues) {
     if (!editingCategory) {
       return;
     }
@@ -80,15 +82,6 @@ export default function CategoriesPage() {
       throw assignError;
     }
   }
-
-  useEffect(() => {
-    if (!editingCategory) {
-      return;
-    }
-
-    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
-    window.scrollTo({ top, behavior: "smooth" });
-  }, [editingCategory]);
 
   if (!book) {
     return null;
@@ -141,6 +134,7 @@ export default function CategoriesPage() {
         </div>
         <div ref={formSectionRef} className="space-y-4">
           <CategoryForm
+            mode={editingCategory ? "edit" : "create"}
             key={editingCategory ? `edit-${editingCategory.id}` : "create-category"}
             initialValue={
               editingCategory

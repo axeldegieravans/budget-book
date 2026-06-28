@@ -11,17 +11,19 @@ const initialValues: BookFormValues = {
 };
 
 export function BookForm({
+  mode = "create",
   initialValue = initialValues,
   submitLabel,
   onSubmit,
   onCancel,
 }: {
+  mode?: "create" | "edit";
   initialValue?: BookFormValues;
   submitLabel: string;
   onSubmit: (values: BookFormValues) => Promise<void>;
   onCancel?: () => void;
 }) {
-  const isEditing = Boolean(onCancel);
+  const isEditing = mode === "edit";
   const [values, setValues] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +35,7 @@ export function BookForm({
 
     try {
       await onSubmit(values);
-      if (submitLabel.toLowerCase().includes("maak")) {
+      if (mode === "create") {
         setValues(initialValues);
       }
     } catch (submitError) {

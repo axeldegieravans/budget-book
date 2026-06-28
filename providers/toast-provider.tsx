@@ -24,6 +24,7 @@ interface ToastContextValue {
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
+const TOAST_DURATION_MS = 4000;
 
 function toneClasses(tone: ToastTone) {
   if (tone === "error") {
@@ -58,7 +59,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       const timeout = setTimeout(() => {
         dismiss(id);
-      }, 4000);
+      }, TOAST_DURATION_MS);
 
       timeoutsRef.current.set(id, timeout);
     },

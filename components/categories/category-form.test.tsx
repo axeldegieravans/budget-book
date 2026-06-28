@@ -5,7 +5,7 @@ import { CategoryForm } from "@/components/categories/category-form";
 describe("CategoryForm", () => {
   it("verstuurd category waarden inclusief budget en kleur", async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined);
-    render(<CategoryForm submitLabel="Voeg categorie toe" onSubmit={onSubmit} />);
+    render(<CategoryForm mode="create" submitLabel="Voeg categorie toe" onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("Naam"), {
       target: { value: "Boodschappen" },

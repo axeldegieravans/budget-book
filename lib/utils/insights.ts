@@ -6,13 +6,20 @@ import type {
   Transaction,
 } from "@/types/domain";
 
+const OVER_BUDGET_RATIO = 1;
+const WARNING_BUDGET_RATIO = 0.8;
+
+function getCategorySpent(categoryId: string, transactions: Transaction[]) {
+  return transactions
+    .filter((transaction) => transaction.type === "expense" && transaction.categoryId === categoryId)
+    .reduce((total, transaction) => total + transaction.amount, 0);
+}
+
 export function getCategoryBudgetStatus(
   category: Category,
   transactions: Transaction[],
 ): BudgetStatus {
-  const spent = transactions
-    .filter((transaction) => transaction.type === "expense" && transaction.categoryId === category.id)
-    .reduce((total, transaction) => total + transaction.amount, 0);
+  const spent = getCategorySpent(category.id, transactions);
   const remaining = category.budget - spent;
 
   if (category.budget <= 0) {
@@ -27,7 +34,7 @@ export function getCategoryBudgetStatus(
 
   const usageRatio = spent / category.budget;
 
-  if (usageRatio >= 1) {
+  if (usageRatio >= OVER_BUDGET_RATIO) {
     return {
       spent,
       remaining,
@@ -37,7 +44,7 @@ export function getCategoryBudgetStatus(
     };
   }
 
-  if (usageRatio >= 0.8) {
+  if (usageRatio >= WARNING_BUDGET_RATIO) {
     return {
       spent,
       remaining,
@@ -88,9 +95,7 @@ export function buildCategoryInsights(
   return categories.map((category) => ({
     name: category.name,
     budget: category.budget,
-    spent: transactions
-      .filter((transaction) => transaction.type === "expense" && transaction.categoryId === category.id)
-      .reduce((total, transaction) => total + transaction.amount, 0),
+    spent: getCategorySpent(category.id, transactions),
   }));
 }
 

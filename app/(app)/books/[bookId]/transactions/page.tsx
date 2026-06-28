@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { BookTabs } from "@/components/books/book-tabs";
 import { SearchFilterBar } from "@/components/transactions/search-filter-bar";
@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { useTransactions } from "@/hooks/use-transactions";
 import {
   createTransaction,
@@ -21,7 +22,7 @@ import {
 import { getErrorMessage } from "@/lib/utils/errors";
 import { defaultTransactionFilters } from "@/lib/utils/filters";
 import { useToast } from "@/providers/toast-provider";
-import type { Transaction } from "@/types/domain";
+import type { Transaction, TransactionFormValues } from "@/types/domain";
 
 export default function TransactionsPage() {
   const params = useParams<{ bookId: string }>();
@@ -34,15 +35,9 @@ export default function TransactionsPage() {
   const [filters, setFilters] = useState(defaultTransactionFilters);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { filteredTransactions } = useTransactions(params.bookId, filters);
+  useScrollToElement(formSectionRef, Boolean(editingTransaction));
 
-  async function handleCreate(values: {
-    title: string;
-    amount: number;
-    type: "expense" | "income";
-    date: string;
-    categoryId?: string;
-    notes?: string;
-  }) {
+  async function handleCreate(values: TransactionFormValues) {
     try {
       await createTransaction(book!.id, user!.uid, values);
       toast.success(`Transactie "${values.title}" is toegevoegd.`);
@@ -52,14 +47,7 @@ export default function TransactionsPage() {
     }
   }
 
-  async function handleUpdate(values: {
-    title: string;
-    amount: number;
-    type: "expense" | "income";
-    date: string;
-    categoryId?: string;
-    notes?: string;
-  }) {
+  async function handleUpdate(values: TransactionFormValues) {
     if (!editingTransaction) {
       return;
     }
@@ -83,15 +71,6 @@ export default function TransactionsPage() {
     }
   }
 
-  useEffect(() => {
-    if (!editingTransaction) {
-      return;
-    }
-
-    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
-    window.scrollTo({ top, behavior: "smooth" });
-  }, [editingTransaction]);
-
   if (!book || !user) {
     return null;
   }
@@ -106,6 +85,7 @@ export default function TransactionsPage() {
       />
       <div ref={formSectionRef}>
         <TransactionForm
+          mode={editingTransaction ? "edit" : "create"}
           key={editingTransaction ? `edit-${editingTransaction.id}` : "create-transaction"}
           categories={categories}
           initialValue={

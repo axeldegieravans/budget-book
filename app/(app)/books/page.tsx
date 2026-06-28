@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { BookCard } from "@/components/books/book-card";
 import { BookForm } from "@/components/books/book-form";
@@ -11,10 +11,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/hooks/use-auth";
 import { useBooks } from "@/hooks/use-books";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { archiveBook, createBook, updateBook } from "@/lib/services/book-service";
 import { getErrorMessage } from "@/lib/utils/errors";
 import { useToast } from "@/providers/toast-provider";
-import type { HouseholdBook } from "@/types/domain";
+import type { BookFormValues, HouseholdBook } from "@/types/domain";
 
 export default function BooksPage() {
   const { user } = useAuth();
@@ -26,8 +27,9 @@ export default function BooksPage() {
 
   const ownedBooks = books.filter((book) => book.role === "owner");
   const sharedBooks = books.filter((book) => book.role === "member");
+  useScrollToElement(formSectionRef, Boolean(editingBook));
 
-  async function handleCreate(values: { name: string; description: string }) {
+  async function handleCreate(values: BookFormValues) {
     if (!user) {
       return;
     }
@@ -41,7 +43,7 @@ export default function BooksPage() {
     }
   }
 
-  async function handleUpdate(values: { name: string; description: string }) {
+  async function handleUpdate(values: BookFormValues) {
     if (!editingBook) {
       return;
     }
@@ -69,15 +71,6 @@ export default function BooksPage() {
       toast.error(getErrorMessage(archiveError, "Boekje archiveren mislukt."));
     }
   }
-
-  useEffect(() => {
-    if (!editingBook) {
-      return;
-    }
-
-    const top = (formSectionRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY - 128;
-    window.scrollTo({ top, behavior: "smooth" });
-  }, [editingBook]);
 
   return (
     <div className="space-y-6">
@@ -141,6 +134,7 @@ export default function BooksPage() {
         </div>
         <div ref={formSectionRef} className="space-y-4">
           <BookForm
+            mode={editingBook ? "edit" : "create"}
             key={editingBook ? `edit-${editingBook.id}` : "create-book"}
             initialValue={
               editingBook
