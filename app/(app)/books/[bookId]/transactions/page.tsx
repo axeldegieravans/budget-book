@@ -1,8 +1,9 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { SearchFilterBar } from "@/components/transactions/search-filter-bar";
 import { TransactionForm } from "@/components/transactions/transaction-form";
@@ -12,26 +13,79 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useAuth } from "@/hooks/use-auth";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { useTransactions } from "@/hooks/use-transactions";
 import {
   createTransaction,
   deleteTransaction,
   updateTransaction,
 } from "@/lib/services/transaction-service";
+import { getErrorMessage } from "@/lib/utils/errors";
 import { defaultTransactionFilters } from "@/lib/utils/filters";
-import type { Transaction } from "@/types/domain";
+import { useToast } from "@/providers/toast-provider";
+import type { Transaction, TransactionFormValues } from "@/types/domain";
 
 export default function TransactionsPage() {
   const params = useParams<{ bookId: string }>();
   const pathname = usePathname();
   const { user } = useAuth();
-  const { book } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
+  const { book, loading } = useBook(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
+  const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [filters, setFilters] = useState(defaultTransactionFilters);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const { filteredTransactions } = useTransactions(params.bookId, filters);
+  const { filteredTransactions } = useTransactions(activeBookId, filters);
+  useScrollToElement(formSectionRef, Boolean(editingTransaction));
 
-  if (!book || !user) {
+  async function handleCreate(values: TransactionFormValues) {
+    try {
+      await createTransaction(book!.id, user!.uid, values);
+      toast.success(`Transactie "${values.title}" is toegevoegd.`);
+    } catch (createError) {
+      toast.error(getErrorMessage(createError, "Transactie aanmaken mislukt."));
+      throw createError;
+    }
+  }
+
+  async function handleUpdate(values: TransactionFormValues) {
+    if (!editingTransaction) {
+      return;
+    }
+
+    try {
+      await updateTransaction(book!.id, editingTransaction.id, values);
+      toast.success(`Transactie "${values.title}" is bijgewerkt.`);
+      setEditingTransaction(null);
+    } catch (updateError) {
+      toast.error(getErrorMessage(updateError, "Transactie bijwerken mislukt."));
+      throw updateError;
+    }
+  }
+
+  async function handleDelete(transaction: Transaction) {
+    try {
+      await deleteTransaction(book!.id, transaction.id);
+      toast.success(`Transactie "${transaction.title}" is verwijderd.`);
+    } catch (deleteError) {
+      toast.error(getErrorMessage(deleteError, "Transactie verwijderen mislukt."));
+    }
+  }
+
+  if (loading || !book) {
+    return (
+      <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
+        Boekje laden...
+      </div>
+    );
+  }
+
+  if (book.isArchived) {
+    return <ArchivedBookNotice />;
+  }
+
+  if (!user) {
     return null;
   }
 
@@ -40,44 +94,50 @@ export default function TransactionsPage() {
       <PageHeader
         eyebrow="Transacties"
         title={`Transacties in ${book.name}`}
-        description="Alle resources updaten realtime. Filter direct op type, categorie, maand of zoekterm."
+        description="Bekijk, filter en beheer je transacties."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
-      <TransactionForm
-        categories={categories}
-        submitLabel="Voeg transactie toe"
-        onSubmit={(values) => createTransaction(book.id, user.uid, values)}
-      />
-      {editingTransaction ? (
+      <div ref={formSectionRef}>
         <TransactionForm
+          mode={editingTransaction ? "edit" : "create"}
+          key={editingTransaction ? `edit-${editingTransaction.id}` : "create-transaction"}
           categories={categories}
-          initialValue={{
-            title: editingTransaction.title,
-            amount: editingTransaction.amount,
-            type: editingTransaction.type,
-            date: editingTransaction.date,
-            categoryId: editingTransaction.categoryId ?? "",
-            notes: editingTransaction.notes ?? "",
-          }}
-          submitLabel="Werk transactie bij"
-          onSubmit={async (values) => {
-            await updateTransaction(book.id, editingTransaction.id, values);
-            setEditingTransaction(null);
-          }}
+          initialValue={
+            editingTransaction
+              ? {
+                  title: editingTransaction.title,
+                  amount: editingTransaction.amount,
+                  type: editingTransaction.type,
+                  date: editingTransaction.date,
+                  categoryId: editingTransaction.categoryId ?? "",
+                  notes: editingTransaction.notes ?? "",
+                }
+              : undefined
+          }
+          submitLabel={editingTransaction ? "Werk transactie bij" : "Voeg transactie toe"}
+          onSubmit={editingTransaction ? handleUpdate : handleCreate}
+          onCancel={editingTransaction ? () => setEditingTransaction(null) : undefined}
         />
-      ) : null}
+      </div>
       <SearchFilterBar categories={categories} filters={filters} onChange={setFilters} />
       {filteredTransactions.length === 0 ? (
         <EmptyState
           title="Geen transacties gevonden"
-          description="Pas je filters aan of voeg een eerste transactie toe."
+          description="Pas je filters aan of voeg een transactie toe."
         />
       ) : (
         <TransactionTable
           categories={categories}
           transactions={filteredTransactions}
           onEdit={setEditingTransaction}
-          onDelete={(transactionId) => deleteTransaction(book.id, transactionId)}
+          onDelete={(transactionId) => {
+            const transaction = filteredTransactions.find((item) => item.id === transactionId);
+            if (!transaction) {
+              return Promise.resolve();
+            }
+
+            return handleDelete(transaction);
+          }}
         />
       )}
     </div>

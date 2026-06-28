@@ -7,7 +7,7 @@ import { logout } from "@/lib/services/auth-service";
 import { cn } from "@/lib/utils/cn";
 
 const navigation = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Overzicht" },
   { href: "/books", label: "Boekjes" },
   { href: "/books/archived", label: "Archief" },
 ];
@@ -30,7 +30,7 @@ export function AppShell({
               <Link href="/dashboard" className="text-lg font-semibold tracking-tight text-slate-900">
                 Huishoudboekje
               </Link>
-              <p className="text-sm text-slate-500">Realtime budgetbeheer voor duo-opdrachten en thuis</p>
+              <p className="text-sm text-slate-500">Houd je geldzaken netjes bij</p>
             </div>
             <nav className="flex flex-wrap items-center gap-2">
               {navigation.map((item) => {

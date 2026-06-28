@@ -27,6 +27,7 @@ type BooksOptions = {
 export function subscribeToBooks(
   userId: string,
   callback: (books: HouseholdBook[]) => void,
+  onError?: (error: Error) => void,
   options: BooksOptions = {},
 ) {
   const { db } = assertFirebaseConfigured();
@@ -59,26 +60,38 @@ export function subscribeToBooks(
     callback(merged);
   };
 
-  const unsubscribeOwned = onSnapshot(ownedBooksQuery, (snapshot) => {
-    ownedBooks = snapshot.docs.map((item) => ({
-      ...mapSnapshot<HouseholdBook>(item),
-      role: "owner" as const,
-    }));
-    emit();
-  });
+  const unsubscribeOwned = onSnapshot(
+    ownedBooksQuery,
+    (snapshot) => {
+      ownedBooks = snapshot.docs.map((item) => ({
+        ...mapSnapshot<HouseholdBook>(item),
+        role: "owner" as const,
+      }));
+      emit();
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 
-  const unsubscribeShared = onSnapshot(sharedBooksQuery, (snapshot) => {
-    sharedBooks = snapshot.docs
-      .map((item) => {
-        const book = mapSnapshot<HouseholdBook>(item);
-        return {
-          ...book,
-          role: book.ownerId === userId ? ("owner" as const) : ("member" as const),
-        };
-      })
-      .filter((book) => book.ownerId !== userId);
-    emit();
-  });
+  const unsubscribeShared = onSnapshot(
+    sharedBooksQuery,
+    (snapshot) => {
+      sharedBooks = snapshot.docs
+        .map((item) => {
+          const book = mapSnapshot<HouseholdBook>(item);
+          return {
+            ...book,
+            role: book.ownerId === userId ? ("owner" as const) : ("member" as const),
+          };
+        })
+        .filter((book) => book.ownerId !== userId);
+      emit();
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 
   return () => {
     unsubscribeOwned();
@@ -89,17 +102,24 @@ export function subscribeToBooks(
 export function subscribeToBook(
   bookId: string,
   callback: (book: HouseholdBook | null) => void,
+  onError?: (error: Error) => void,
 ) {
   const { db } = assertFirebaseConfigured();
 
-  return onSnapshot(doc(db, "books", bookId), (snapshot) => {
-    if (!snapshot.exists()) {
-      callback(null);
-      return;
-    }
+  return onSnapshot(
+    doc(db, "books", bookId),
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback(null);
+        return;
+      }
 
-    callback(mapDocumentSnapshot<HouseholdBook>(snapshot));
-  });
+      callback(mapDocumentSnapshot<HouseholdBook>(snapshot));
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 }
 
 export async function createBook(ownerId: string, values: BookFormValues) {

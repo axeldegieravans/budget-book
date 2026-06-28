@@ -31,9 +31,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Dashboard"
-        title="Realtime overzicht"
-        description="Bekijk direct hoe je budgetten, inkomsten en uitgaven zich ontwikkelen. Alles hieronder ververst live via Firestore."
+        eyebrow="Overzicht"
+        title="Overzicht"
+        description="Bekijk snel je saldo, inkomsten en uitgaven."
         actions={
           <Link
             href="/books"
@@ -46,12 +46,12 @@ export default function DashboardPage() {
 
       {loading ? (
         <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
-          Dashboard laden...
+          Overzicht laden...
         </div>
       ) : !activeBook ? (
         <EmptyState
           title="Nog geen actief boekje"
-          description="Maak eerst een huishoudboekje aan. Daarna verschijnen hier automatisch je statistieken en grafieken."
+          description="Maak eerst een boekje aan om hier je overzicht te zien."
           action={
             <Link
               href="/books"

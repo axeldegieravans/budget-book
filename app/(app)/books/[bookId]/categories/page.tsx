@@ -1,8 +1,9 @@
 "use client";
 
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { CategoryBudgetCard } from "@/components/categories/category-budget-card";
 import { CategoryDropBoard } from "@/components/categories/category-drop-board";
@@ -11,21 +12,89 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { useTransactions } from "@/hooks/use-transactions";
 import { createCategory, deleteCategory, updateCategory } from "@/lib/services/category-service";
 import { assignCategory } from "@/lib/services/transaction-service";
-import type { Category } from "@/types/domain";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
+import type { Category, CategoryFormValues } from "@/types/domain";
 
 export default function CategoriesPage() {
   const params = useParams<{ bookId: string }>();
   const pathname = usePathname();
-  const { book } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
-  const { transactions } = useTransactions(params.bookId);
+  const { book, loading } = useBook(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
+  const { transactions } = useTransactions(activeBookId);
+  const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  useScrollToElement(formSectionRef, Boolean(editingCategory));
 
-  if (!book) {
-    return null;
+  async function handleCreate(values: CategoryFormValues) {
+    try {
+      await createCategory(params.bookId, values);
+      toast.success(`Categorie "${values.name}" is toegevoegd.`);
+    } catch (createError) {
+      toast.error(getErrorMessage(createError, "Categorie aanmaken mislukt."));
+      throw createError;
+    }
+  }
+
+  async function handleUpdate(values: CategoryFormValues) {
+    if (!editingCategory) {
+      return;
+    }
+
+    try {
+      await updateCategory(params.bookId, editingCategory.id, values);
+      toast.success(`Categorie "${values.name}" is bijgewerkt.`);
+      setEditingCategory(null);
+    } catch (updateError) {
+      toast.error(getErrorMessage(updateError, "Categorie bijwerken mislukt."));
+      throw updateError;
+    }
+  }
+
+  async function handleDelete(category: Category) {
+    try {
+      await deleteCategory(params.bookId, category.id);
+      toast.success(`Categorie "${category.name}" is verwijderd.`);
+    } catch (deleteError) {
+      toast.error(getErrorMessage(deleteError, "Categorie verwijderen mislukt."));
+    }
+  }
+
+  async function handleAssign(transactionId: string, categoryId: string) {
+    const transaction = transactions.find((item) => item.id === transactionId);
+    const category = categories.find((item) => item.id === categoryId);
+
+    try {
+      await assignCategory(params.bookId, transactionId, categoryId);
+
+      if (transaction && category) {
+        toast.success(`"${transaction.title}" is gekoppeld aan "${category.name}".`);
+        return;
+      }
+
+      toast.success("Transactie is aan de categorie gekoppeld.");
+    } catch (assignError) {
+      toast.error(getErrorMessage(assignError, "Koppelen aan categorie mislukt."));
+      throw assignError;
+    }
+  }
+
+  if (loading || !book) {
+    return (
+      <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
+        Boekje laden...
+      </div>
+    );
+  }
+
+  if (book.isArchived) {
+    return <ArchivedBookNotice />;
   }
 
   const uncategorizedTransactions = transactions.filter((transaction) => !transaction.categoryId);
@@ -35,7 +104,7 @@ export default function CategoriesPage() {
       <PageHeader
         eyebrow="Categorieen"
         title={`Categorieen in ${book.name}`}
-        description="Beheer budgetten per categorie en koppel transacties direct via drag-and-drop."
+        description="Beheer je categorieen en koppel transacties."
         actions={<BookTabs bookId={book.id} pathname={pathname} />}
       />
       <section className="grid gap-6 xl:grid-cols-[1.1fr_0.95fr]">
@@ -43,7 +112,7 @@ export default function CategoriesPage() {
           {categories.length === 0 ? (
             <EmptyState
               title="Nog geen categorieen"
-              description="Voeg categorieen toe zodat je budgetten per onderwerp kunt bewaken."
+              description="Voeg een categorie toe om te beginnen."
             />
           ) : (
             categories.map((category) => (
@@ -62,7 +131,7 @@ export default function CategoriesPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => void deleteCategory(book.id, category.id)}
+                      onClick={() => void handleDelete(category)}
                       className="rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100"
                     >
                       Verwijder
@@ -73,32 +142,31 @@ export default function CategoriesPage() {
             ))
           )}
         </div>
-        <div className="space-y-4">
+        <div ref={formSectionRef} className="space-y-4">
           <CategoryForm
-            submitLabel="Voeg categorie toe"
-            onSubmit={(values) => createCategory(book.id, values)}
+            mode={editingCategory ? "edit" : "create"}
+            key={editingCategory ? `edit-${editingCategory.id}` : "create-category"}
+            initialValue={
+              editingCategory
+                ? {
+                    name: editingCategory.name,
+                    budget: editingCategory.budget,
+                    color: editingCategory.color,
+                    endDate: editingCategory.endDate,
+                  }
+                : undefined
+            }
+            submitLabel={editingCategory ? "Werk categorie bij" : "Voeg categorie toe"}
+            onSubmit={editingCategory ? handleUpdate : handleCreate}
+            onCancel={editingCategory ? () => setEditingCategory(null) : undefined}
           />
-          {editingCategory ? (
-            <CategoryForm
-              initialValue={{
-                name: editingCategory.name,
-                budget: editingCategory.budget,
-                color: editingCategory.color,
-                endDate: editingCategory.endDate,
-              }}
-              submitLabel="Werk categorie bij"
-              onSubmit={async (values) => {
-                await updateCategory(book.id, editingCategory.id, values);
-                setEditingCategory(null);
-              }}
-            />
-          ) : null}
         </div>
       </section>
       <CategoryDropBoard
         categories={categories}
+        transactions={transactions}
         uncategorizedTransactions={uncategorizedTransactions}
-        onAssign={(transactionId, categoryId) => assignCategory(book.id, transactionId, categoryId)}
+        onAssign={handleAssign}
       />
     </div>
   );

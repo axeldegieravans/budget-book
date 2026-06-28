@@ -21,6 +21,7 @@ import type { Category, CategoryFormValues } from "@/types/domain";
 export function subscribeToCategories(
   bookId: string,
   callback: (categories: Category[]) => void,
+  onError?: (error: Error) => void,
 ) {
   const { db } = assertFirebaseConfigured();
   const categoriesQuery = query(
@@ -28,9 +29,15 @@ export function subscribeToCategories(
     orderBy("createdAt", "asc"),
   );
 
-  return onSnapshot(categoriesQuery, (snapshot) => {
-    callback(snapshot.docs.map((item) => mapSnapshot<Category>(item)));
-  });
+  return onSnapshot(
+    categoriesQuery,
+    (snapshot) => {
+      callback(snapshot.docs.map((item) => mapSnapshot<Category>(item)));
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
 }
 
 export async function createCategory(bookId: string, values: CategoryFormValues) {

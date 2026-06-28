@@ -1,18 +1,22 @@
 "use client";
 
+import type { SubmitEvent } from "react";
 import { useState } from "react";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
 
 export function ShareBookForm({
   onShare,
 }: {
   onShare: (email: string) => Promise<void>;
 }) {
+  const toast = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
@@ -21,9 +25,12 @@ export function ShareBookForm({
     try {
       await onShare(email);
       setMessage("Boekje succesvol gedeeld.");
+      toast.success(`Boekje is gedeeld met ${email}.`);
       setEmail("");
     } catch (shareError) {
-      setError(shareError instanceof Error ? shareError.message : "Delen mislukt.");
+      const message = getErrorMessage(shareError, "Delen mislukt.");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

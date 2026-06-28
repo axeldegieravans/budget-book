@@ -5,7 +5,7 @@ import { BookForm } from "@/components/books/book-form";
 describe("BookForm", () => {
   it("stuurt naam en omschrijving door", async () => {
     const onSubmit = jest.fn().mockResolvedValue(undefined);
-    render(<BookForm submitLabel="Maak boekje aan" onSubmit={onSubmit} />);
+    render(<BookForm mode="create" submitLabel="Maak boekje aan" onSubmit={onSubmit} />);
 
     fireEvent.change(screen.getByLabelText("Naam"), {
       target: { value: "Vakantie 2026" },

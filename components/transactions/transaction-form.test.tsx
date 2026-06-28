@@ -18,6 +18,7 @@ describe("TransactionForm", () => {
             updatedAt: "",
           },
         ]}
+        mode="create"
         submitLabel="Voeg transactie toe"
         onSubmit={onSubmit}
       />,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { BookCard } from "@/components/books/book-card";
 import { BookForm } from "@/components/books/book-form";
@@ -11,33 +11,65 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatCard } from "@/components/ui/stat-card";
 import { useAuth } from "@/hooks/use-auth";
 import { useBooks } from "@/hooks/use-books";
+import { useScrollToElement } from "@/hooks/use-scroll-to-element";
 import { archiveBook, createBook, updateBook } from "@/lib/services/book-service";
-import type { HouseholdBook } from "@/types/domain";
+import { getErrorMessage } from "@/lib/utils/errors";
+import { useToast } from "@/providers/toast-provider";
+import type { BookFormValues, HouseholdBook } from "@/types/domain";
 
 export default function BooksPage() {
   const { user } = useAuth();
   const { books, loading, error } = useBooks(user?.uid);
+  const toast = useToast();
+  const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingBook, setEditingBook] = useState<HouseholdBook | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<HouseholdBook | null>(null);
 
   const ownedBooks = books.filter((book) => book.role === "owner");
   const sharedBooks = books.filter((book) => book.role === "member");
+  useScrollToElement(formSectionRef, Boolean(editingBook));
 
-  async function handleCreate(values: { name: string; description: string }) {
+  async function handleCreate(values: BookFormValues) {
     if (!user) {
       return;
     }
 
-    await createBook(user.uid, values);
+    try {
+      await createBook(user.uid, values);
+      toast.success(`Boekje "${values.name}" is aangemaakt.`);
+    } catch (createError) {
+      toast.error(getErrorMessage(createError, "Boekje aanmaken mislukt."));
+      throw createError;
+    }
   }
 
-  async function handleUpdate(values: { name: string; description: string }) {
+  async function handleUpdate(values: BookFormValues) {
     if (!editingBook) {
       return;
     }
 
-    await updateBook(editingBook.id, values);
-    setEditingBook(null);
+    try {
+      await updateBook(editingBook.id, values);
+      toast.success(`Boekje "${values.name}" is bijgewerkt.`);
+      setEditingBook(null);
+    } catch (updateError) {
+      toast.error(getErrorMessage(updateError, "Boekje bijwerken mislukt."));
+      throw updateError;
+    }
+  }
+
+  async function handleArchive() {
+    if (!archiveTarget) {
+      return;
+    }
+
+    try {
+      await archiveBook(archiveTarget.id);
+      toast.success(`Boekje "${archiveTarget.name}" is gearchiveerd.`);
+      setArchiveTarget(null);
+    } catch (archiveError) {
+      toast.error(getErrorMessage(archiveError, "Boekje archiveren mislukt."));
+    }
   }
 
   return (
@@ -45,7 +77,7 @@ export default function BooksPage() {
       <PageHeader
         eyebrow="Boekjes"
         title="Jouw huishoudboekjes"
-        description="Beheer meerdere budgetten naast elkaar, bijvoorbeeld voor thuis, een projectgroep of een vakantiepot."
+        description="Bekijk, maak en beheer je boekjes."
         actions={
           <Link
             href="/books/archived"
@@ -84,7 +116,7 @@ export default function BooksPage() {
           ) : books.length === 0 ? (
             <EmptyState
               title="Nog geen boekjes"
-              description="Maak je eerste huishoudboekje aan om transacties, categorieen en inzichten bij te houden."
+              description="Maak je eerste boekje aan om te beginnen."
             />
           ) : (
             <div className="space-y-4">
@@ -100,34 +132,35 @@ export default function BooksPage() {
           )}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>
-        <div className="space-y-4">
-          <BookForm submitLabel="Maak boekje aan" onSubmit={handleCreate} />
+        <div ref={formSectionRef} className="space-y-4">
+          <BookForm
+            mode={editingBook ? "edit" : "create"}
+            key={editingBook ? `edit-${editingBook.id}` : "create-book"}
+            initialValue={
+              editingBook
+                ? {
+                    name: editingBook.name,
+                    description: editingBook.description,
+                  }
+                : undefined
+            }
+            submitLabel={editingBook ? "Sla wijzigingen op" : "Maak boekje aan"}
+            onSubmit={editingBook ? handleUpdate : handleCreate}
+            onCancel={editingBook ? () => setEditingBook(null) : undefined}
+          />
           {archiveTarget ? (
             <ConfirmDialog
               title={`Archiveer "${archiveTarget.name}"`}
               description="Het boekje verdwijnt uit dit overzicht en komt in het archief terecht. Je kunt het later altijd herstellen."
               confirmLabel="Bevestig archiveren"
-              onConfirm={() => {
-                void archiveBook(archiveTarget.id);
-                setArchiveTarget(null);
-              }}
-            />
-          ) : null}
-          {editingBook ? (
-            <BookForm
-              initialValue={{
-                name: editingBook.name,
-                description: editingBook.description,
-              }}
-              submitLabel="Sla wijzigingen op"
-              onSubmit={handleUpdate}
+              onConfirm={() => void handleArchive()}
             />
           ) : null}
           {!editingBook && !archiveTarget ? (
             <div className="rounded-[1.9rem] border border-dashed border-emerald-200 bg-emerald-50/70 p-6">
-              <h3 className="text-lg font-semibold text-slate-900">Sneller werken met boekjes</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Tip</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Geef elk boekje een duidelijke naam, bijvoorbeeld per huis, project of reis. Dan blijven overzicht, categorieen en transacties later veel makkelijker scanbaar.
+                Geef je boekjes duidelijke namen zodat je ze sneller terugvindt.
               </p>
             </div>
           ) : null}
