@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useParams, usePathname } from "next/navigation";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { OverviewCharts } from "@/components/dashboard/overview-charts";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,9 +17,10 @@ import { formatCurrency } from "@/lib/utils/format";
 export default function InsightsPage() {
   const params = useParams<{ bookId: string }>();
   const pathname = usePathname();
-  const { book } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
-  const { transactions } = useTransactions(params.bookId);
+  const { book, loading } = useBook(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
+  const { transactions } = useTransactions(activeBookId);
 
   const totals = useMemo(() => getBookTotals(transactions), [transactions]);
   const monthlyData = useMemo(() => buildMonthlyInsights(transactions), [transactions]);
@@ -27,8 +29,16 @@ export default function InsightsPage() {
     [categories, transactions],
   );
 
-  if (!book) {
-    return null;
+  if (loading || !book) {
+    return (
+      <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
+        Boekje laden...
+      </div>
+    );
+  }
+
+  if (book.isArchived) {
+    return <ArchivedBookNotice />;
   }
 
   return (

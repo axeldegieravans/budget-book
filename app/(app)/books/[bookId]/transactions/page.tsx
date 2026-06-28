@@ -3,6 +3,7 @@
 import { useParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { SearchFilterBar } from "@/components/transactions/search-filter-bar";
 import { TransactionForm } from "@/components/transactions/transaction-form";
@@ -28,13 +29,14 @@ export default function TransactionsPage() {
   const params = useParams<{ bookId: string }>();
   const pathname = usePathname();
   const { user } = useAuth();
-  const { book } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
+  const { book, loading } = useBook(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
   const toast = useToast();
   const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [filters, setFilters] = useState(defaultTransactionFilters);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const { filteredTransactions } = useTransactions(params.bookId, filters);
+  const { filteredTransactions } = useTransactions(activeBookId, filters);
   useScrollToElement(formSectionRef, Boolean(editingTransaction));
 
   async function handleCreate(values: TransactionFormValues) {
@@ -71,7 +73,19 @@ export default function TransactionsPage() {
     }
   }
 
-  if (!book || !user) {
+  if (loading || !book) {
+    return (
+      <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
+        Boekje laden...
+      </div>
+    );
+  }
+
+  if (book.isArchived) {
+    return <ArchivedBookNotice />;
+  }
+
+  if (!user) {
     return null;
   }
 

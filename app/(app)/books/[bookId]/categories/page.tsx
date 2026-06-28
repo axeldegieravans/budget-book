@@ -3,6 +3,7 @@
 import { useParams, usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { CategoryBudgetCard } from "@/components/categories/category-budget-card";
 import { CategoryDropBoard } from "@/components/categories/category-drop-board";
@@ -22,9 +23,10 @@ import type { Category, CategoryFormValues } from "@/types/domain";
 export default function CategoriesPage() {
   const params = useParams<{ bookId: string }>();
   const pathname = usePathname();
-  const { book } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
-  const { transactions } = useTransactions(params.bookId);
+  const { book, loading } = useBook(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
+  const { transactions } = useTransactions(activeBookId);
   const toast = useToast();
   const formSectionRef = useRef<HTMLDivElement | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -83,8 +85,16 @@ export default function CategoriesPage() {
     }
   }
 
-  if (!book) {
-    return null;
+  if (loading || !book) {
+    return (
+      <div className="rounded-[1.75rem] bg-white/80 p-6 text-sm text-slate-600 shadow-sm">
+        Boekje laden...
+      </div>
+    );
+  }
+
+  if (book.isArchived) {
+    return <ArchivedBookNotice />;
   }
 
   const uncategorizedTransactions = transactions.filter((transaction) => !transaction.categoryId);

@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { useMemo } from "react";
 
+import { ArchivedBookNotice } from "@/components/books/archived-book-notice";
 import { BookTabs } from "@/components/books/book-tabs";
 import { ShareBookForm } from "@/components/books/share-book-form";
 import { OverviewCharts } from "@/components/dashboard/overview-charts";
@@ -22,8 +22,9 @@ export default function BookDetailPage() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { book, loading } = useBook(params.bookId);
-  const { categories } = useCategories(params.bookId);
-  const { transactions } = useTransactions(params.bookId);
+  const activeBookId = !loading && book && !book.isArchived ? params.bookId : undefined;
+  const { categories } = useCategories(activeBookId);
+  const { transactions } = useTransactions(activeBookId);
 
   const totals = useMemo(() => getBookTotals(transactions), [transactions]);
   const monthlyData = useMemo(() => buildMonthlyInsights(transactions), [transactions]);
@@ -41,17 +42,7 @@ export default function BookDetailPage() {
   }
 
   if (book.isArchived) {
-    return (
-      <div className="space-y-4 rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6">
-        <h1 className="text-2xl font-semibold text-amber-950">Dit boekje is gearchiveerd</h1>
-        <p className="text-sm text-amber-900">
-          Herstel het boekje eerst vanuit het archief om het weer te gebruiken.
-        </p>
-        <Link href="/books/archived" className="text-sm font-semibold text-amber-900 underline">
-          Ga naar archief
-        </Link>
-      </div>
-    );
+    return <ArchivedBookNotice />;
   }
 
   const isOwner = user?.uid === book.ownerId;
