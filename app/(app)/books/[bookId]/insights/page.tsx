@@ -11,8 +11,8 @@ import { StatCard } from "@/components/ui/stat-card";
 import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
-import { buildCategoryInsights, buildMonthlyInsights, getBookTotals } from "@/lib/utils/insights";
 import { formatCurrency } from "@/lib/utils/format";
+import { buildCategoryInsights, buildMonthlyInsights, getBookTotals } from "@/lib/utils/insights";
 
 export default function InsightsPage() {
   const params = useParams<{ bookId: string }>();
