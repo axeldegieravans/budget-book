@@ -29,7 +29,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         await login(email, password);
       }
 
-      router.push("/dashboard");
+      router.push("/books");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Authenticatie mislukt.");
     } finally {

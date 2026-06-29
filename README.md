@@ -26,7 +26,7 @@ Open de app bij voorkeur via [http://localhost:3000](http://localhost:3000).
 - Transacties toevoegen, bewerken, verwijderen en filteren op maand, type en categorie
 - Categorieen met budget, einddatum en visuele budgetstatus
 - Drag-and-drop om transacties direct aan een categorie te koppelen
-- Realtime inzichten via Firestore listeners en grafieken
+- Realtime inzichten via Firestore listeners en grafieken per boekje
 
 ## Firebase configuratie
 

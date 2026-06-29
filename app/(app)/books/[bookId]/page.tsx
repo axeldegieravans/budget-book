@@ -14,8 +14,8 @@ import { useBook } from "@/hooks/use-books";
 import { useCategories } from "@/hooks/use-categories";
 import { useTransactions } from "@/hooks/use-transactions";
 import { shareBook } from "@/lib/services/book-service";
-import { buildCategoryInsights, buildMonthlyInsights, getBookTotals } from "@/lib/utils/insights";
 import { formatCurrency } from "@/lib/utils/format";
+import { buildCategoryInsights, buildMonthlyInsights, getBookTotals } from "@/lib/utils/insights";
 
 export default function BookDetailPage() {
   const params = useParams<{ bookId: string }>();

@@ -22,7 +22,7 @@ describe("AuthForm", () => {
     jest.clearAllMocks();
   });
 
-  it("logt een gebruiker in en navigeert naar het dashboard", async () => {
+  it("logt een gebruiker in en navigeert naar de boekjes", async () => {
     login.mockResolvedValue(undefined);
 
     render(<AuthForm mode="login" />);
@@ -37,7 +37,7 @@ describe("AuthForm", () => {
 
     await waitFor(() => {
       expect(login).toHaveBeenCalledWith("student@example.com", "secret123");
-      expect(push).toHaveBeenCalledWith("/dashboard");
+      expect(push).toHaveBeenCalledWith("/books");
     });
   });
 
@@ -59,7 +59,7 @@ describe("AuthForm", () => {
 
     await waitFor(() => {
       expect(register).toHaveBeenCalledWith("axel@example.com", "secret123", "Axel");
-      expect(push).toHaveBeenCalledWith("/dashboard");
+      expect(push).toHaveBeenCalledWith("/books");
     });
   });
 
